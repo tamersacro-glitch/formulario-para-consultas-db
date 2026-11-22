@@ -1,0 +1,274 @@
+-- ==========================================
+-- SISTEMA DE GESTIÓN ESCOLAR TAMERLANDS CODES V4.5.0
+-- ==========================================
+
+-- 1. Crear base de datos
+CREATE DATABASE gestion_escolar
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci;
+
+-- 2. Seleccionar base de datos
+USE gestion_escolar;
+
+
+-- ==========================================
+-- 3. TABLA ESTUDIANTE
+-- ==========================================
+
+CREATE TABLE estudiante (
+    id_estudiante INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    apellido VARCHAR(100) NOT NULL,
+    fecha_nacimiento DATE,
+    correo VARCHAR(150) UNIQUE
+);
+
+
+-- ==========================================
+-- 4. TABLA PROFESOR
+-- ==========================================
+
+CREATE TABLE profesor (
+    id_profesor INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    apellido VARCHAR(100) NOT NULL,
+    correo VARCHAR(150) UNIQUE,
+    carrera VARCHAR(100)
+);
+
+
+-- ==========================================
+-- 5. TABLA MATERIA
+-- ==========================================
+
+CREATE TABLE materia (
+    id_materia INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    creditos INT NOT NULL,
+    id_profesor INT,
+
+    FOREIGN KEY (id_profesor)
+        REFERENCES profesor(id_profesor)
+);
+
+
+-- ==========================================
+-- 6. TABLA MATRÍCULA
+-- ==========================================
+
+CREATE TABLE matricula (
+    id_matricula INT AUTO_INCREMENT PRIMARY KEY,
+    id_estudiante INT NOT NULL,
+    id_materia INT NOT NULL,
+    periodo VARCHAR(50) NOT NULL,
+    fecha_matricula DATE NOT NULL,
+    estado VARCHAR(30) DEFAULT 'Activa',
+
+    FOREIGN KEY (id_estudiante)
+        REFERENCES estudiante(id_estudiante),
+
+    FOREIGN KEY (id_materia)
+        REFERENCES materia(id_materia)
+);
+
+
+-- ==========================================
+-- 7. TABLA EVALUACIÓN
+-- ==========================================
+
+CREATE TABLE evaluacion (
+    id_evaluacion INT AUTO_INCREMENT PRIMARY KEY,
+    id_matricula INT NOT NULL,
+    tipo VARCHAR(100) NOT NULL,
+    calificacion DECIMAL(5,2) NOT NULL,
+    fecha DATE NOT NULL,
+
+    FOREIGN KEY (id_matricula)
+        REFERENCES matricula(id_matricula)
+);
+
+
+-- ==========================================
+-- 8. INSERTAR PROFESORES
+-- ==========================================
+
+INSERT INTO profesor (nombre, apellido, correo, carrera)
+VALUES
+('Carlos', 'Ramírez', 'carlos.ramirez@escuela.edu.mx', 'Ingeniería en Sistemas'),
+('María', 'González', 'maria.gonzalez@escuela.edu.mx', 'Ingeniería en Software'),
+('Luis', 'Hernández', 'luis.hernandez@escuela.edu.mx', 'Tecnologías de Información');
+
+
+-- ==========================================
+-- 9. INSERTAR ESTUDIANTES
+-- ==========================================
+
+INSERT INTO estudiante (nombre, apellido, fecha_nacimiento, correo)
+VALUES
+('Jacob', 'Narváez', '1992-11-12', 'jacob.narvaez@alumno.edu.mx'),
+('Ana', 'Martínez', '2003-05-20', 'ana.martinez@alumno.edu.mx'),
+('Pedro', 'López', '2002-08-15', 'pedro.lopez@alumno.edu.mx'),
+('Sofía', 'Rodríguez', '2004-01-10', 'sofia.rodriguez@alumno.edu.mx'),
+('Daniel', 'Torres', '2003-12-05', 'daniel.torres@alumno.edu.mx');
+
+
+-- ==========================================
+-- 10. INSERTAR MATERIAS
+-- ==========================================
+
+INSERT INTO materia (nombre, creditos, id_profesor)
+VALUES
+('Bases de Datos', 5, 1),
+('Programación', 6, 2),
+('Redes de Computadoras', 5, 3),
+('Desarrollo Web', 5, 2),
+('Sistemas Operativos', 4, 1);
+
+
+-- ==========================================
+-- 11. INSERTAR MATRÍCULAS
+-- ==========================================
+
+INSERT INTO matricula
+(id_estudiante, id_materia, periodo, fecha_matricula, estado)
+VALUES
+(1, 1, '2026-3', '2026-11-01', 'Activa'),
+(1, 2, '2026-3', '2026-11-01', 'Activa'),
+(2, 1, '2026-3', '2026-11-02', 'Activa'),
+(2, 3, '2026-3', '2026-11-02', 'Activa'),
+(3, 2, '2026-3', '2026-11-03', 'Activa'),
+(3, 4, '2026-3', '2026-11-03', 'Activa'),
+(4, 3, '2026-3', '2026-11-04', 'Activa'),
+(5, 5, '2026-3', '2026-11-05', 'Activa');
+
+
+-- ==========================================
+-- 12. INSERTAR EVALUACIONES
+-- ==========================================
+
+INSERT INTO evaluacion (id_matricula, tipo, calificacion, fecha)
+VALUES
+(1, 'Examen Parcial 1', 85, '2026-11-10'),
+(1, 'Examen Parcial 2', 92, '2026-11-15'),
+(2, 'Proyecto', 95, '2026-11-16'),
+(3, 'Examen Parcial 1', 78, '2026-11-10'),
+(3, 'Proyecto', 88, '2026-11-17'),
+(4, 'Examen Parcial 1', 90, '2026-11-12'),
+(5, 'Examen Parcial 1', 82, '2026-11-13'),
+(6, 'Proyecto', 96, '2026-11-18'),
+(7, 'Examen Parcial 1', 87, '2026-11-14'),
+(8, 'Examen Final', 94, '2026-11-19');
+
+
+-- ==========================================
+-- 13. CONSULTA 1
+-- ESTUDIANTES Y MATERIAS INSCRITAS
+-- ==========================================
+USE gestion_escolar;
+
+SELECT
+    estudiante.id_estudiante,
+    estudiante.nombre,
+    estudiante.apellido,
+    materia.nombre AS materia,
+    matricula.periodo,
+    matricula.fecha_matricula
+FROM matricula
+INNER JOIN estudiante
+    ON matricula.id_estudiante = estudiante.id_estudiante
+INNER JOIN materia
+    ON matricula.id_materia = materia.id_materia;
+
+
+-- ==========================================
+-- 14. CONSULTA 2
+-- CALIFICACIONES DE LOS ESTUDIANTES
+-- ==========================================
+USE gestion_escolar;
+
+SELECT
+    estudiante.nombre,
+    estudiante.apellido,
+    materia.nombre AS materia,
+    evaluacion.tipo,
+    evaluacion.calificacion,
+    evaluacion.fecha
+FROM evaluacion
+INNER JOIN matricula
+    ON evaluacion.id_matricula = matricula.id_matricula
+INNER JOIN estudiante
+    ON matricula.id_estudiante = estudiante.id_estudiante
+INNER JOIN materia
+    ON matricula.id_materia = materia.id_materia
+ORDER BY estudiante.apellido;
+
+
+-- ==========================================
+-- 15. ACTUALIZACIÓN
+-- MODIFICAR UNA CALIFICACIÓN
+-- ==========================================
+USE gestion_escolar;
+UPDATE evaluacion
+SET calificacion = 95
+WHERE id_evaluacion = 1;
+
+
+-- ==========================================
+-- 16. VERIFICAR ACTUALIZACIÓN
+-- ==========================================
+USE gestion_escolar;
+SELECT *
+FROM evaluacion
+WHERE id_evaluacion = 1;
+
+
+-- ==========================================
+-- 17. CONSULTA ADICIONAL
+-- MATERIAS Y PROFESORES
+-- ==========================================
+USE gestion_escolar;
+SELECT
+    materia.nombre AS materia,
+    materia.creditos,
+    profesor.nombre AS nombre_profesor,
+    profesor.apellido AS apellido_profesor
+FROM materia
+INNER JOIN profesor
+    ON materia.id_profesor = profesor.id_profesor;
+
+
+-- ==========================================
+-- 18. CONSULTA DE PROMEDIOS
+-- ==========================================
+USE gestion_escolar;
+SELECT
+    estudiante.nombre,
+    estudiante.apellido,
+    AVG(evaluacion.calificacion) AS promedio
+FROM estudiante
+INNER JOIN matricula
+    ON estudiante.id_estudiante = matricula.id_estudiante
+INNER JOIN evaluacion
+    ON matricula.id_matricula = evaluacion.id_matricula
+GROUP BY
+    estudiante.id_estudiante,
+    estudiante.nombre,
+    estudiante.apellido;
+
+
+-- ==========================================
+-- 19. VERIFICAR TABLAS
+-- ==========================================
+USE gestion_escolar;
+SHOW TABLES;
+
+
+-- ==========================================
+-- 20. VERIFICAR ESTRUCTURA
+-- ==========================================
+USE gestion_escolar;
+DESCRIBE estudiante;
+DESCRIBE profesor;
+DESCRIBE materia;
+DESCRIBE matricula;
+DESCRIBE evaluacion;
